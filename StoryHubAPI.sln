@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33122.133
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StoryHubAPI", "StoryHubAPI\StoryHubAPI.csproj", "{64A0664F-10B6-4553-9046-3E20314C106B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{64A0664F-10B6-4553-9046-3E20314C106B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64A0664F-10B6-4553-9046-3E20314C106B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64A0664F-10B6-4553-9046-3E20314C106B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64A0664F-10B6-4553-9046-3E20314C106B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B9AF04B7-F17B-4304-ABA1-7514BE095946}
+	EndGlobalSection
+EndGlobal
