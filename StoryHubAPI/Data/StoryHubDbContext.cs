@@ -28,5 +28,35 @@ namespace StoryHubAPI.Data
                 .WithOne(l => l.User)
                 .OnDelete(DeleteBehavior.Restrict);
         }
+
+        public override int SaveChanges()
+        {
+            var tracker = ChangeTracker;
+
+            foreach (var entry in tracker.Entries())
+            {
+                if (entry.Entity is AuditModel)
+                {
+                    var referenceEntity = entry.Entity as AuditModel;
+                    if (referenceEntity is not null)
+                    {
+                        switch (entry.State)
+                        {
+                            case EntityState.Added:
+                                referenceEntity.CreatedAt = DateTime.Now;
+                                break;
+                            case EntityState.Modified:
+                                referenceEntity.LastModifiedAt = DateTime.Now;
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    
+                }
+            }
+
+            return base.SaveChanges();
+        }
     }
 }

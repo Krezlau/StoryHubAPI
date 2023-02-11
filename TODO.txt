@@ -1,3 +1,4 @@
 task01:
     * setup database
     * setup identity system
+    * setup repositories for crud actions
