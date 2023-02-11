@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using StoryHubAPI.Data;
 using StoryHubAPI.Models;
 using StoryHubAPI.Models.DTOs;
 using StoryHubAPI.Repository.IRepository;
-using System.Runtime.CompilerServices;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace StoryHubAPI.Repository
 {
@@ -13,7 +16,7 @@ namespace StoryHubAPI.Repository
         private readonly StoryHubDbContext _context;
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        private string secretKey = "secret"; // for now
+        private string secretKey = "extremelySecretKey"; // for now
 
         public UserRepository(StoryHubDbContext context, UserManager<User> userManager, RoleManager<IdentityRole> roleManager)
         {
@@ -53,11 +56,11 @@ namespace StoryHubAPI.Repository
                 };
             }
 
-            // here gonna need to generate jwt token
+            string token = await CreateToken(user);
 
             return new LoginResponseDTO()
             {
-                Token = "token",
+                Token = token,
                 User = new UserDTO()
                 {
                     Id = user.Id,
@@ -80,6 +83,12 @@ namespace StoryHubAPI.Repository
 
             if (result.Succeeded)
             {
+                if (!(await _roleManager.RoleExistsAsync("user")))
+                {
+                    await _roleManager.CreateAsync(new IdentityRole("user"));
+                }
+
+                await _userManager.AddToRoleAsync(user, "user");
                 return new UserDTO()
                 {
                     Id = user.Id,
@@ -87,6 +96,28 @@ namespace StoryHubAPI.Repository
                 };
             }
             return new UserDTO();
+        }
+
+        private async Task<string> CreateToken(User user)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(secretKey);
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new Claim[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id),
+                    new Claim(ClaimTypes.Role, roles.FirstOrDefault())
+                }),
+                Expires = DateTime.Now.AddDays(1),
+                SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+
+            return tokenHandler.WriteToken(token);
         }
     }
 }
