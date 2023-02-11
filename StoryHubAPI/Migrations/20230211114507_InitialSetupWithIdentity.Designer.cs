@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StoryHubAPI.Data;
 
@@ -11,9 +12,11 @@ using StoryHubAPI.Data;
 namespace StoryHubAPI.Migrations
 {
     [DbContext(typeof(StoryHubDbContext))]
-    partial class StoryHubDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230211114507_InitialSetupWithIdentity")]
+    partial class InitialSetupWithIdentity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -164,9 +167,6 @@ namespace StoryHubAPI.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("LastModifiedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<Guid>("StoryId")
                         .HasColumnType("uniqueidentifier");
 
@@ -187,34 +187,6 @@ namespace StoryHubAPI.Migrations
                     b.ToTable("Comments");
                 });
 
-            modelBuilder.Entity("StoryHubAPI.Models.Like", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("LastModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid>("StoryId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StoryId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Likes");
-                });
-
             modelBuilder.Entity("StoryHubAPI.Models.Story", b =>
                 {
                     b.Property<Guid>("Id")
@@ -226,9 +198,6 @@ namespace StoryHubAPI.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("LastModifiedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Text")
@@ -252,12 +221,6 @@ namespace StoryHubAPI.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("LastModifiedAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -419,25 +382,6 @@ namespace StoryHubAPI.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("StoryHubAPI.Models.Like", b =>
-                {
-                    b.HasOne("StoryHubAPI.Models.Story", "Story")
-                        .WithMany("Likes")
-                        .HasForeignKey("StoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("StoryHubAPI.Models.User", "User")
-                        .WithMany("Likes")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Story");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("StoryHubAPI.Models.Story", b =>
                 {
                     b.HasOne("StoryHubAPI.Models.User", "Author")
@@ -467,15 +411,11 @@ namespace StoryHubAPI.Migrations
             modelBuilder.Entity("StoryHubAPI.Models.Story", b =>
                 {
                     b.Navigation("Comments");
-
-                    b.Navigation("Likes");
                 });
 
             modelBuilder.Entity("StoryHubAPI.Models.User", b =>
                 {
                     b.Navigation("Comments");
-
-                    b.Navigation("Likes");
 
                     b.Navigation("Stories");
                 });

@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StoryHubAPI.Data;
+using StoryHubAPI.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +17,9 @@ builder.Services.AddDbContext<StoryHubDbContext>(option =>
 {
     option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultSQLConnection"));
 });
+
+builder.Services.AddIdentity<User, IdentityRole>()
+    .AddEntityFrameworkStores<StoryHubDbContext>();
 
 
 var app = builder.Build();
