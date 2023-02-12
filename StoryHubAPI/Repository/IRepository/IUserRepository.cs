@@ -7,5 +7,6 @@ namespace StoryHubAPI.Repository.IRepository
         Task<bool> IsUniqueUser(string username);
         Task<LoginResponseDTO> Login(LoginRequestDTO loginRequestDTO);
         Task<UserDTO> Register(RegisterRequestDTO registerRequestDTO);
+        Task<string> Refresh(string accessToken, string refreshToken);
     }
 }

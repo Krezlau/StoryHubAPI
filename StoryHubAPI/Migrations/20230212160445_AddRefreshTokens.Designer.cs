@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StoryHubAPI.Data;
 
@@ -11,9 +12,11 @@ using StoryHubAPI.Data;
 namespace StoryHubAPI.Migrations
 {
     [DbContext(typeof(StoryHubDbContext))]
-    partial class StoryHubDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230212160445_AddRefreshTokens")]
+    partial class AddRefreshTokens
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

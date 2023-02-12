@@ -43,5 +43,19 @@ namespace StoryHubAPI.Controllers
             }
             return Ok(user);
         }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] RefreshRequestDTO request)
+        {
+            try
+            {
+                string token = await _userRepository.Refresh(request.AccessToken, request.RefreshToken);
+                return Ok(token);
+            } 
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
     }
 }
