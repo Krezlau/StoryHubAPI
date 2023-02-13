@@ -1,0 +1,61 @@
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using StoryHubAPI.Models.DTOs;
+using StoryHubAPI.Repository.IRepository;
+
+namespace StoryHubAPI.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class AuthController : ControllerBase
+    {
+        private readonly IUserRepository _userRepository;
+
+        public AuthController(IUserRepository userRepository)
+        {
+            _userRepository = userRepository;
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequestDTO request)
+        {
+            var loginResponse = await _userRepository.Login(request);
+            if (loginResponse.User is null)
+            {
+                return BadRequest();
+            }
+            return Ok(loginResponse);
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequestDTO request)
+        {
+            bool ifUserNameUnique = await _userRepository.IsUniqueUser(request.Username);
+            if (!ifUserNameUnique)
+            {
+                return BadRequest();
+            }
+
+            var user = await _userRepository.Register(request);
+            if (user is null)
+            {
+                return BadRequest();
+            }
+            return Ok(user);
+        }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] RefreshRequestDTO request)
+        {
+            try
+            {
+                string token = await _userRepository.Refresh(request.AccessToken, request.RefreshToken);
+                return Ok(token);
+            } 
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+    }
+}
