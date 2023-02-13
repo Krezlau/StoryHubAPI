@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using StoryHubAPI.Models.DTOs;
 using StoryHubAPI.Repository.IRepository;
+using StoryHubAPI.Services;
 
 namespace StoryHubAPI.Controllers
 {
@@ -11,10 +11,12 @@ namespace StoryHubAPI.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
+        private readonly IAccessTokenService _tokenService;
 
-        public AuthController(IUserRepository userRepository)
+        public AuthController(IUserRepository userRepository, IAccessTokenService tokenService)
         {
             _userRepository = userRepository;
+            _tokenService = tokenService;
         }
 
         [HttpPost("login")]
@@ -61,9 +63,29 @@ namespace StoryHubAPI.Controllers
 
         [HttpPost("change-password")]
         [Authorize(AuthenticationSchemes = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)]
-        public async Task<IActionResult> ChangePassword([FromBody] string newPassword)
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDTO request)
         {
-            return Ok();
+            string? userId = _tokenService.RetrieveUserIdFromRequest(Request);
+
+            if (userId is null)
+            {
+                return BadRequest();
+            }
+
+            bool outcome;
+            try
+            {
+                outcome = await _userRepository.ChangePasswordAsync(userId, request.CurrentPassword, request.NewPassword);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+            if (outcome)
+            {
+                return Ok();
+            }
+            return BadRequest();
         }
     }
 }

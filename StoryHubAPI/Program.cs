@@ -48,7 +48,8 @@ builder.Services.AddIdentity<User, IdentityRole>()
     .AddTokenProvider("StoryHub", typeof(DataProtectorTokenProvider<User>));
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IAccessTokenService, AccessTokenService>();
+builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 
 builder.Services.AddSwaggerGen(options =>
 {

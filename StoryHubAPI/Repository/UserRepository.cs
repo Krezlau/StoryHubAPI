@@ -18,14 +18,20 @@ namespace StoryHubAPI.Repository
         private readonly StoryHubDbContext _context;
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly ITokenService _tokenService;
+        private readonly IAccessTokenService _accessTokenService;
+        private readonly IRefreshTokenService _refreshTokenService;
 
-        public UserRepository(StoryHubDbContext context, UserManager<User> userManager, RoleManager<IdentityRole> roleManager, ITokenService tokenService)
+        public UserRepository(StoryHubDbContext context,
+                              UserManager<User> userManager,
+                              RoleManager<IdentityRole> roleManager,
+                              IAccessTokenService tokenService,
+                              IRefreshTokenService refreshTokenService)
         {
             _context = context;
             _userManager = userManager;
             _roleManager = roleManager;
-            _tokenService = tokenService;
+            _accessTokenService = tokenService;
+            _refreshTokenService = refreshTokenService;
         }
 
         public async Task<bool> IsUniqueUser(string username)
@@ -59,8 +65,8 @@ namespace StoryHubAPI.Repository
                 };
             }
 
-            string token = await _tokenService.GenerateJwtTokenAsync(user);
-            string refreshToken = await _tokenService.RetrieveOrGenerateRefreshTokenAsync(user);
+            string token = await _accessTokenService.GenerateJwtTokenAsync(user);
+            string refreshToken = await _refreshTokenService.RetrieveOrGenerateRefreshTokenAsync(user);
 
 
             return new LoginResponseDTO()
@@ -107,16 +113,29 @@ namespace StoryHubAPI.Repository
 
         public async Task<string> Refresh(string accessToken, string refreshToken)
         {
-            string userId = _tokenService.ReadUserId(accessToken);
+            string userId = _accessTokenService.ReadUserId(accessToken);
 
             User user = new User() { Id = userId };
 
-            if (!await _tokenService.ValidateRefreshTokenAsync(user, refreshToken))
+            if (!await _refreshTokenService.ValidateRefreshTokenAsync(user, refreshToken))
             { 
                 throw new Exception("Ivalid refresh token.");  
             }
 
-            return await _tokenService.GenerateJwtTokenAsync(user);
+            return await _accessTokenService.GenerateJwtTokenAsync(user);
+        }
+
+        public async Task<bool> ChangePasswordAsync(string userId, string currentPassword, string newPassword)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId);
+
+            if (user is null) return false;
+
+            var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+
+            await _refreshTokenService.RevokeRefreshTokenAsync(user);
+
+            return result.Succeeded;
         }
     }
 }

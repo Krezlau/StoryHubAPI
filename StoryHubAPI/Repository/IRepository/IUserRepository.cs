@@ -8,6 +8,6 @@ namespace StoryHubAPI.Repository.IRepository
         Task<LoginResponseDTO> Login(LoginRequestDTO loginRequestDTO);
         Task<UserDTO> Register(RegisterRequestDTO registerRequestDTO);
         Task<string> Refresh(string accessToken, string refreshToken);
-        Task<bool> ChangePasswordAsync(string token, string newPassword);
+        Task<bool> ChangePasswordAsync(string userId, string currentPassword, string newPassword);
     }
 }
