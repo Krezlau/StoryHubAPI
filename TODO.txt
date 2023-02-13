@@ -5,3 +5,8 @@ task01:
     * user repository
     * create jwt token
     * refresh tokens
+
+task02:
+    * api response object
+    * authentication with bearer
+    * change password endpoint

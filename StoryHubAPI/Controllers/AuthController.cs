@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using StoryHubAPI.Models.DTOs;
 using StoryHubAPI.Repository.IRepository;
@@ -56,6 +57,13 @@ namespace StoryHubAPI.Controllers
             {
                 return BadRequest(e.Message);
             }
+        }
+
+        [HttpPost("change-password")]
+        [Authorize(AuthenticationSchemes = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<IActionResult> ChangePassword([FromBody] string newPassword)
+        {
+            return Ok();
         }
     }
 }
