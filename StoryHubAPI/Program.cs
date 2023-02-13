@@ -6,6 +6,7 @@ using StoryHubAPI.Data;
 using StoryHubAPI.Models;
 using StoryHubAPI.Repository;
 using StoryHubAPI.Repository.IRepository;
+using StoryHubAPI.Services;
 using System.Security.Principal;
 using System.Text;
 
@@ -46,6 +47,7 @@ builder.Services.AddIdentity<User, IdentityRole>()
     .AddTokenProvider("StoryHub", typeof(DataProtectorTokenProvider<User>));
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 var app = builder.Build();
 

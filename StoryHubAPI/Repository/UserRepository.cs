@@ -5,6 +5,7 @@ using StoryHubAPI.Data;
 using StoryHubAPI.Models;
 using StoryHubAPI.Models.DTOs;
 using StoryHubAPI.Repository.IRepository;
+using StoryHubAPI.Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -17,14 +18,14 @@ namespace StoryHubAPI.Repository
         private readonly StoryHubDbContext _context;
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        private string secretKey = "extremelySecretKey"; // for now
-        private readonly string _tokenProvider = "StoryHub";
+        private readonly ITokenService _tokenService;
 
-        public UserRepository(StoryHubDbContext context, UserManager<User> userManager, RoleManager<IdentityRole> roleManager)
+        public UserRepository(StoryHubDbContext context, UserManager<User> userManager, RoleManager<IdentityRole> roleManager, ITokenService tokenService)
         {
             _context = context;
             _userManager = userManager;
             _roleManager = roleManager;
+            _tokenService = tokenService;
         }
 
         public async Task<bool> IsUniqueUser(string username)
@@ -58,8 +59,8 @@ namespace StoryHubAPI.Repository
                 };
             }
 
-            string token = await CreateToken(user);
-            string refreshToken = await GenerateRefreshToken(user);
+            string token = await _tokenService.GenerateJwtTokenAsync(user);
+            string refreshToken = await _tokenService.RetrieveOrGenerateRefreshTokenAsync(user);
 
 
             return new LoginResponseDTO()
@@ -106,79 +107,16 @@ namespace StoryHubAPI.Repository
 
         public async Task<string> Refresh(string accessToken, string refreshToken)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var token = tokenHandler.ReadJwtToken(accessToken);
-            var userIdClaim = token.Claims.FirstOrDefault(c => c.Type == "nameid");
+            string userId = _tokenService.ReadUserId(accessToken);
 
-            if (userIdClaim is null)
-            {
-                throw new Exception("Invalid access token.");
-            }
-            string userId = userIdClaim.Value;
+            User user = new User() { Id = userId };
 
-            User user = new User()
-            {
-                Id = userId
-            };
-
-            if (!await _userManager.VerifyUserTokenAsync(user, _tokenProvider, "RefreshToken", refreshToken))
+            if (!await _tokenService.ValidateRefreshTokenAsync(user, refreshToken))
             { 
                 throw new Exception("Ivalid refresh token.");  
             }
 
-            return await CreateToken(user);
-        }
-
-        private async Task<string> CreateToken(User user)
-        {
-            var roles = await _userManager.GetRolesAsync(user);
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(secretKey);
-
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
-                    new Claim(ClaimTypes.NameIdentifier, user.Id),
-                    new Claim(ClaimTypes.Role, roles.FirstOrDefault())
-                }),
-                Expires = DateTime.Now.AddHours(1),
-                SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-
-            return tokenHandler.WriteToken(token);
-        }
-
-        private async Task<string> GenerateRefreshToken(User user)
-        {
-            string refreshTokenValue = RandomStringGeneration(25);
-            var refreshToken = new RefreshToken()
-            {
-                CreatedAt = DateTime.Now,
-                IsActive = true,
-                IsRevoked = false,
-                UserId = user.Id,
-                Value = refreshTokenValue
-            };
-
-            await _context.RefreshTokens.AddAsync(refreshToken);
-            await _context.SaveChangesAsync();
-
-            return refreshTokenValue;
-        }
-
-        private string RandomStringGeneration(int length)
-        {
-            var random = new Random();
-            var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890abcdefghijklmnopqrstuvwxyz_!@#$%^&*()";
-            return new string(Enumerable.Repeat(chars, length).Select(s => s[random.Next(s.Length)]).ToArray());
-        }
-
-        private async Task<bool> ValidateRefreshToken(User user, string refreshToken)
-        {
-            return false;
+            return await _tokenService.GenerateJwtTokenAsync(user);
         }
     }
 }
