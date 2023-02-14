@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using StoryHubAPI.Data;
+using StoryHubAPI.Exceptions;
 using StoryHubAPI.Models;
 using StoryHubAPI.Models.DTOs;
 using StoryHubAPI.Repository.IRepository;
@@ -18,49 +19,47 @@ namespace StoryHubAPI.Repository
         private readonly StoryHubDbContext _context;
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly ITokenService _tokenService;
+        private readonly IAccessTokenService _accessTokenService;
+        private readonly IRefreshTokenService _refreshTokenService;
 
-        public UserRepository(StoryHubDbContext context, UserManager<User> userManager, RoleManager<IdentityRole> roleManager, ITokenService tokenService)
+        public UserRepository(StoryHubDbContext context,
+                              UserManager<User> userManager,
+                              RoleManager<IdentityRole> roleManager,
+                              IAccessTokenService tokenService,
+                              IRefreshTokenService refreshTokenService)
         {
             _context = context;
             _userManager = userManager;
             _roleManager = roleManager;
-            _tokenService = tokenService;
+            _accessTokenService = tokenService;
+            _refreshTokenService = refreshTokenService;
         }
 
-        public async Task<bool> IsUniqueUser(string username)
+        public async Task<bool> IsUniqueUserAsync(string username)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == username);
 
             return user is null;
         }
 
-        public async Task<LoginResponseDTO> Login(LoginRequestDTO loginRequestDTO)
+        public async Task<LoginResponseDTO> LoginUserAsync(LoginRequestDTO loginRequestDTO)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == loginRequestDTO.Username);
 
             if (user is null)
             {
-                return new LoginResponseDTO()
-                {
-                    AccessToken = "",
-                    User = null
-                };
+                throw new AuthException("Incorrect username.");
             }
 
             bool isValid = await _userManager.CheckPasswordAsync(user, loginRequestDTO.Password);
 
             if (!isValid)
             {
-                return new LoginResponseDTO()
-                {
-                    AccessToken = "",
-                    User = null
-                };
+                throw new AuthException("Incorrect password.");
             }
 
-            string token = await _tokenService.GenerateJwtTokenAsync(user);
-            string refreshToken = await _tokenService.RetrieveOrGenerateRefreshTokenAsync(user);
+            string token = await _accessTokenService.GenerateJwtTokenAsync(user);
+            string refreshToken = await _refreshTokenService.RetrieveOrGenerateRefreshTokenAsync(user);
 
 
             return new LoginResponseDTO()
@@ -70,13 +69,13 @@ namespace StoryHubAPI.Repository
                 User = new UserDTO()
                 {
                     Id = user.Id,
-                    Username = user.UserName
+                    Username = user.UserName!
                 }
             };
             
         }
 
-        public async Task<UserDTO> Register(RegisterRequestDTO registerRequestDTO)
+        public async Task<UserDTO> RegisterUserAsync(RegisterRequestDTO registerRequestDTO)
         {
             User user = new User()
             {
@@ -86,7 +85,6 @@ namespace StoryHubAPI.Repository
             };
 
             var result = await _userManager.CreateAsync(user, registerRequestDTO.Password);
-
 
             if (result.Succeeded)
             {
@@ -102,21 +100,60 @@ namespace StoryHubAPI.Repository
                     Username = registerRequestDTO.Username
                 };
             }
-            return new UserDTO();
+            else
+            {
+                StringBuilder errors = new StringBuilder();
+                foreach (var error in result.Errors)
+                {
+                    errors.AppendLine(error.Description);
+                }
+                throw new AuthException(errors.ToString().TrimEnd());
+            }
         }
 
-        public async Task<string> Refresh(string accessToken, string refreshToken)
+        public async Task<string> RefreshAsync(string accessToken, string refreshToken)
         {
-            string userId = _tokenService.ReadUserId(accessToken);
+            string userId;
+            try
+            {
+                userId = _accessTokenService.ReadUserId(accessToken);
+            }
+            catch (Exception ex)
+            {
+                throw new AuthException("Invalid access token.", ex);
+            }
 
             User user = new User() { Id = userId };
 
-            if (!await _tokenService.ValidateRefreshTokenAsync(user, refreshToken))
+            if (!await _refreshTokenService.ValidateRefreshTokenAsync(user, refreshToken))
             { 
-                throw new Exception("Ivalid refresh token.");  
+                throw new AuthException("Ivalid refresh token.");  
             }
 
-            return await _tokenService.GenerateJwtTokenAsync(user);
+            return await _accessTokenService.GenerateJwtTokenAsync(user);
+        }
+
+        public async Task<bool> ChangePasswordAsync(string userId, string currentPassword, string newPassword)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId);
+
+            if (user is null) return false;
+
+            var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+
+            if (result.Succeeded)
+            {
+                await _refreshTokenService.RevokeRefreshTokenAsync(user);
+                return true;
+            } else
+            {
+                StringBuilder errors = new StringBuilder();
+                foreach (var error in result.Errors)
+                {
+                    errors.AppendLine(error.Description);
+                }
+                throw new AuthException(errors.ToString().TrimEnd());
+            }
         }
     }
 }

@@ -1,12 +1,12 @@
 ﻿using StoryHubAPI.Models;
+using System.Runtime.CompilerServices;
 
 namespace StoryHubAPI.Services
 {
-    public interface ITokenService
+    public interface IRefreshTokenService
     {
-        Task<string> GenerateJwtTokenAsync(User user);
         Task<string> RetrieveOrGenerateRefreshTokenAsync(User user);
         Task<bool> ValidateRefreshTokenAsync(User user, string refreshToken);
-        string ReadUserId(string jwtToken);
+        Task RevokeRefreshTokenAsync(User user);
     }
 }

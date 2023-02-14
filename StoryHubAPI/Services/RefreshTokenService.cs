@@ -1,46 +1,16 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.EntityFrameworkCore;
 using StoryHubAPI.Data;
 using StoryHubAPI.Models;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 namespace StoryHubAPI.Services
 {
-    public class TokenService : ITokenService
+    public class RefreshTokenService : IRefreshTokenService
     {
-        private readonly UserManager<User> _userManager;
         private readonly StoryHubDbContext _context;
-        private string secretKey = "extremelySecretKey"; // for now
 
-        public TokenService(UserManager<User> userManager, StoryHubDbContext context)
+        public RefreshTokenService(StoryHubDbContext context)
         {
-            _userManager = userManager;
             _context = context;
-        }
-
-        public async Task<string> GenerateJwtTokenAsync(User user)
-        {
-            var roles = await _userManager.GetRolesAsync(user);
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(secretKey);
-
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
-                    new Claim(ClaimTypes.NameIdentifier, user.Id),
-                    new Claim(ClaimTypes.Role, roles.FirstOrDefault())
-                }),
-                Expires = DateTime.Now.AddHours(1),
-                SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-
-            return tokenHandler.WriteToken(token);
         }
 
         public async Task<string> RetrieveOrGenerateRefreshTokenAsync(User user)
@@ -70,17 +40,14 @@ namespace StoryHubAPI.Services
             return true;
         }
 
-        public string ReadUserId(string jwtToken)
+        public async Task RevokeRefreshTokenAsync(User user)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var token = tokenHandler.ReadJwtToken(jwtToken);
-            var userIdClaim = token.Claims.FirstOrDefault(c => c.Type == "nameid");
-
-            if (userIdClaim is null)
-            {
-                throw new Exception("Invalid access token.");
-            }
-            return userIdClaim.Value;
+            var dbToken = await RetrieveUserRefreshTokenAsync(user);
+            if (dbToken is null) return;
+            dbToken.IsRevoked = true;
+            dbToken.IsActive = false;
+            _context.RefreshTokens.Update(dbToken);
+            await _context.SaveChangesAsync();
         }
 
         private async Task<RefreshToken?> RetrieveUserRefreshTokenAsync(User user)
