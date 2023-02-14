@@ -7,7 +7,7 @@ namespace StoryHubAPI.Repository
 {
     public class Repository<T> : IRepository<T> where T : class
     {
-        private readonly StoryHubDbContext _context;
+        protected readonly StoryHubDbContext _context;
         internal DbSet<T> dbSet;
 
         public Repository(StoryHubDbContext context)
@@ -28,7 +28,7 @@ namespace StoryHubAPI.Repository
             await SaveAsync();
         }
 
-        public async Task<List<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null)
+        public async Task<List<T>> GetAllAsync(Expression<Func<T, bool>>? filter, string? includeProperties = null)
         {
             IQueryable<T> query = dbSet;
 
@@ -36,12 +36,19 @@ namespace StoryHubAPI.Repository
             {
                 query = query.Where(filter);
             }
+            if (includeProperties is not null)
+            {
+                foreach (var property in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    query = query.Include(property);
+                }
+            }
 
             return await query.ToListAsync();
 
         }
 
-        public async Task<T?> GetAsync(Expression<Func<T, bool>> filter = null, bool tracked = true)
+        public async Task<T?> GetAsync(Expression<Func<T, bool>>? filter, bool tracked = true, string? includeProperties = null)
         {
             IQueryable<T> query = dbSet;
 
@@ -53,14 +60,15 @@ namespace StoryHubAPI.Repository
             {
                 query = query.Where(filter);
             }
+            if (includeProperties is not null && includeProperties != "")
+            {
+                foreach (var property in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    query = query.Include(property);
+                }
+            }
 
             return await query.FirstOrDefaultAsync();
-        }
-
-        public async Task UpdateAsync(T entity)
-        {
-            dbSet.Update(entity);
-            await SaveAsync();
         }
 
         public async Task SaveAsync()

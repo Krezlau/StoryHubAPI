@@ -10,3 +10,9 @@ task02:
     * api response object
     * authentication with bearer
     * change password endpoint
+
+task03:
+    * story controller
+    * comments controller
+    * likes controller
+    * auto mapper
