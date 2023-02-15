@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using StoryHubAPI.Models;
 using StoryHubAPI.Models.DTOs;
@@ -24,6 +25,10 @@ namespace StoryHubAPI.Controllers
         }
 
         [HttpGet("story/{storyId}")]
+        [Authorize(AuthenticationSchemes = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<APIResponse<List<CommentResponseDTO>>>> GetComments(string storyId)
         {
             bool outcome = Guid.TryParseExact(storyId, "D", out Guid storyGuid);
@@ -73,6 +78,10 @@ namespace StoryHubAPI.Controllers
         }
 
         [HttpPost("story/{storyId}")]
+        [Authorize(AuthenticationSchemes = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<APIResponse<string>>> CreateComment(string storyId, [FromBody] CommentRequestDTO comment)
         {
             var currentUserId = _tokenService.RetrieveUserIdFromRequest(Request);
