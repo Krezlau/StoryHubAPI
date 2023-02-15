@@ -15,4 +15,3 @@ task03:
     * story controller
     * comments controller
     * likes controller
-    * auto mapper
