@@ -6,6 +6,7 @@ using StoryHubAPI.Models;
 using StoryHubAPI.Models.DTOs;
 using StoryHubAPI.Repository.IRepository;
 using StoryHubAPI.Services;
+using System.ComponentModel.Design;
 using System.Net;
 
 namespace StoryHubAPI.Controllers
@@ -16,11 +17,13 @@ namespace StoryHubAPI.Controllers
     {
         private readonly IStoryRepository _storyRepo;
         private readonly IAccessTokenService _tokenService;
+        private readonly IRepository<Tag> _tagRepo;
 
-        public StoriesController(IStoryRepository storyRepo, IAccessTokenService tokenService)
+        public StoriesController(IStoryRepository storyRepo, IAccessTokenService tokenService, IRepository<Tag> tagRepo)
         {
             _storyRepo = storyRepo;
             _tokenService = tokenService;
+            _tagRepo = tagRepo;
         }
 
         [HttpGet]
@@ -199,10 +202,30 @@ namespace StoryHubAPI.Controllers
                 });
             }
 
-            // TODO
-            // get tags by name 
-            // checking if valid of course
             List<Tag> tags = new(story.Tags.Count);
+            List<string> errors = new List<string>();
+            foreach (string tag in story.Tags)
+            {
+                Tag? newTag = await _tagRepo.GetAsync(t => t.Name == tag);
+                if (newTag is null)
+                {
+                    errors.Add($"Invalid tag name [{tag}]");
+                }
+                else
+                {
+                    tags.Add(newTag);
+                }
+            }
+
+            if (errors.Count > 0)
+            {
+                return BadRequest(new APIResponse<string>
+                {
+                    StatusCode = HttpStatusCode.BadRequest,
+                    IsSuccess = false,
+                    ErrorMessages = errors
+                });
+            }
 
             Story created = new()
             {
