@@ -65,7 +65,7 @@ namespace StoryHubAPI.Data
             });
         }
 
-        public override int SaveChanges()
+        private void TrackChanges()
         {
             var tracker = ChangeTracker;
 
@@ -88,9 +88,35 @@ namespace StoryHubAPI.Data
                                 break;
                         }
                     }
-                    
+
                 }
             }
+        }
+
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            TrackChanges();
+
+            return base.SaveChangesAsync(cancellationToken);
+        }
+
+        public override int SaveChanges(bool acceptAllChangesOnSuccess)
+        {
+            TrackChanges();
+
+            return base.SaveChanges(acceptAllChangesOnSuccess);
+        }
+
+        public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+        {
+            TrackChanges();
+
+            return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+        }
+
+        public override int SaveChanges()
+        {
+            TrackChanges();
 
             return base.SaveChanges();
         }
