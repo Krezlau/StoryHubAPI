@@ -25,7 +25,7 @@ namespace StoryHubAPI.Controllers
         [HttpPost("login")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<APIResponse<LoginResponseDTO>>> Login([FromBody] LoginRequestDTO request)
+        public async Task<ActionResult<APIResponse>> Login([FromBody] LoginRequestDTO request)
         {
             LoginResponseDTO loginResponse;
             try
@@ -34,7 +34,7 @@ namespace StoryHubAPI.Controllers
             }
             catch (AuthException e)
             {
-                return BadRequest(new APIResponse<LoginResponseDTO>()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -42,7 +42,7 @@ namespace StoryHubAPI.Controllers
                 });
             }
 
-            return Ok(new APIResponse<LoginResponseDTO>()
+            return Ok(new APIResponse()
             {
                 StatusCode = HttpStatusCode.OK,
                 IsSuccess = true,
@@ -53,12 +53,12 @@ namespace StoryHubAPI.Controllers
         [HttpPost("register")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<APIResponse<UserDTO>>> Register([FromBody] RegisterRequestDTO request)
+        public async Task<ActionResult<APIResponse>> Register([FromBody] RegisterRequestDTO request)
         {
             bool ifUserNameUnique = await _userRepository.IsUniqueUserAsync(request.Username);
             if (!ifUserNameUnique)
             {
-                return BadRequest(new APIResponse<UserDTO>()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -69,7 +69,7 @@ namespace StoryHubAPI.Controllers
             try
             {
                 var user = await _userRepository.RegisterUserAsync(request);
-                return Ok(new APIResponse<UserDTO>() 
+                return Ok(new APIResponse() 
                 { 
                     StatusCode = HttpStatusCode.OK,
                     IsSuccess = true,
@@ -78,7 +78,7 @@ namespace StoryHubAPI.Controllers
             }
             catch (AuthException e)
             {
-                return BadRequest(new APIResponse<UserDTO>() 
+                return BadRequest(new APIResponse() 
                 { 
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -91,12 +91,12 @@ namespace StoryHubAPI.Controllers
         [HttpPost("refresh")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<APIResponse<string>>> Refresh([FromBody] RefreshRequestDTO request)
+        public async Task<ActionResult<APIResponse>> Refresh([FromBody] RefreshRequestDTO request)
         {
             try
             {
                 string token = await _userRepository.RefreshAsync(request.AccessToken, request.RefreshToken);
-                return Ok(new APIResponse<string>()
+                return Ok(new APIResponse()
                 { 
                     StatusCode = HttpStatusCode.OK,
                     IsSuccess = true,
@@ -105,7 +105,7 @@ namespace StoryHubAPI.Controllers
             } 
             catch (AuthException e)
             {
-                return BadRequest(new APIResponse<string>() 
+                return BadRequest(new APIResponse() 
                 { 
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -119,13 +119,13 @@ namespace StoryHubAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult<APIResponse<string>>> ChangePassword([FromBody] ChangePasswordRequestDTO request)
+        public async Task<ActionResult<APIResponse>> ChangePassword([FromBody] ChangePasswordRequestDTO request)
         {
             string? userId = _tokenService.RetrieveUserIdFromRequest(Request);
 
             if (userId is null)
             {
-                return BadRequest(new APIResponse<string>()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -140,7 +140,7 @@ namespace StoryHubAPI.Controllers
             }
             catch (AuthException e)
             {
-                return BadRequest(new APIResponse<string>()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -149,14 +149,14 @@ namespace StoryHubAPI.Controllers
             }
             if (!outcome)
             {
-                return BadRequest(new APIResponse<string>() 
+                return BadRequest(new APIResponse() 
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
                     ErrorMessages = { "Invalid access token" }
                 });
             }
-            return Ok(new APIResponse<string>()
+            return Ok(new APIResponse()
             {
                 StatusCode = HttpStatusCode.OK,
                 IsSuccess = true,

@@ -29,13 +29,13 @@ namespace StoryHubAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult<APIResponse<List<CommentResponseDTO>>>> GetComments(string storyId)
+        public async Task<ActionResult<APIResponse>> GetComments(string storyId)
         {
             bool outcome = Guid.TryParseExact(storyId, "D", out Guid storyGuid);
 
             if (!outcome)
             {
-                return BadRequest(new APIResponse<List<CommentResponseDTO>> ()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -47,7 +47,7 @@ namespace StoryHubAPI.Controllers
 
             if (story is null)
             {
-                return BadRequest(new APIResponse<List<CommentResponseDTO>> ()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -69,7 +69,7 @@ namespace StoryHubAPI.Controllers
                 });
             }
 
-            return Ok(new APIResponse<List<CommentResponseDTO>>()
+            return Ok(new APIResponse()
             {
                 StatusCode = HttpStatusCode.OK,
                 IsSuccess = true,
@@ -82,13 +82,13 @@ namespace StoryHubAPI.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult<APIResponse<string>>> CreateComment(string storyId, [FromBody] CommentRequestDTO comment)
+        public async Task<ActionResult<APIResponse>> CreateComment(string storyId, [FromBody] CommentRequestDTO comment)
         {
             var currentUserId = _tokenService.RetrieveUserIdFromRequest(Request);
 
             if (currentUserId is null)
             {
-                return BadRequest(new APIResponse<string>()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -100,7 +100,7 @@ namespace StoryHubAPI.Controllers
 
             if (!outcome)
             {
-                return BadRequest(new APIResponse<string>()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -112,7 +112,7 @@ namespace StoryHubAPI.Controllers
 
             if (story is null)
             {
-                return BadRequest(new APIResponse<string>()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -130,7 +130,7 @@ namespace StoryHubAPI.Controllers
             try
             {
                 await _commentRepo.CreateAsync(created);
-                return CreatedAtRoute(created.Id, new APIResponse<string>()
+                return CreatedAtRoute(created.Id, new APIResponse()
                 {
                     StatusCode = HttpStatusCode.Created,
                     IsSuccess = true,
@@ -138,7 +138,7 @@ namespace StoryHubAPI.Controllers
                 });
             } catch (Exception)
             {
-                return BadRequest(new APIResponse<string>()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,

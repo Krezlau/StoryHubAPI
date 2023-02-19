@@ -28,13 +28,13 @@ namespace StoryHubAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult<APIResponse<string>>> LikeStory(string storyId)
+        public async Task<ActionResult<APIResponse>> LikeStory(string storyId)
         {
             var currentUserId = _tokenService.RetrieveUserIdFromRequest(Request);
 
             if (currentUserId is null)
             {
-                return BadRequest(new APIResponse<string>()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -46,7 +46,7 @@ namespace StoryHubAPI.Controllers
 
             if (!outcome)
             {
-                return BadRequest(new APIResponse<string>()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -58,7 +58,7 @@ namespace StoryHubAPI.Controllers
 
             if (story is null || await _storyRepo.IfLikedByCurrentUserAsync(storyGuid, currentUserId))
             {
-                return BadRequest(new APIResponse<string>()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -75,7 +75,7 @@ namespace StoryHubAPI.Controllers
             try
             {
                 await _likeRepo.CreateAsync(like);
-                return Ok(new APIResponse<string>()
+                return Ok(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.OK,
                     IsSuccess = true,
@@ -83,7 +83,7 @@ namespace StoryHubAPI.Controllers
                 });
             } catch (Exception)
             {
-                return BadRequest(new APIResponse<string>()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -97,13 +97,13 @@ namespace StoryHubAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult<APIResponse<string>>> RemoveLike(string storyId)
+        public async Task<ActionResult<APIResponse>> RemoveLike(string storyId)
         {
             var currentUserId = _tokenService.RetrieveUserIdFromRequest(Request);
 
             if (currentUserId is null)
             {
-                return BadRequest(new APIResponse<string>()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -115,7 +115,7 @@ namespace StoryHubAPI.Controllers
 
             if (!outcome)
             {
-                return BadRequest(new APIResponse<string>()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -127,7 +127,7 @@ namespace StoryHubAPI.Controllers
 
             if (story is null)
             {
-                return BadRequest(new APIResponse<string>()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -139,7 +139,7 @@ namespace StoryHubAPI.Controllers
 
             if (like is null)
             {
-                return BadRequest(new APIResponse<string>()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -150,7 +150,7 @@ namespace StoryHubAPI.Controllers
             try
             {
                 await _likeRepo.DeleteAsync(like);
-                return Ok(new APIResponse<string>()
+                return Ok(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.OK,
                     IsSuccess = true,
@@ -159,7 +159,7 @@ namespace StoryHubAPI.Controllers
             }
             catch (Exception)
             {
-                return BadRequest(new APIResponse<string>()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
