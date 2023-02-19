@@ -31,13 +31,13 @@ namespace StoryHubAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult<APIResponse<List<StoryResponseDTO>>>> GetStories()
+        public async Task<ActionResult<APIResponse>> GetStories()
         {
             var currentUserId = _tokenService.RetrieveUserIdFromRequest(Request);
 
             if (currentUserId is null)
             {
-                return BadRequest(new APIResponse<List<StoryResponseDTO>>()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -64,7 +64,7 @@ namespace StoryHubAPI.Controllers
                 });
             }
 
-            return Ok(new APIResponse<List<StoryResponseDTO>>()
+            return Ok(new APIResponse()
             {
                 StatusCode = HttpStatusCode.OK,
                 IsSuccess = true,
@@ -78,13 +78,13 @@ namespace StoryHubAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<APIResponse<StoryResponseDTO>>> GetStory(string id)
+        public async Task<ActionResult<APIResponse>> GetStory(string id)
         {
             var currentUserId = _tokenService.RetrieveUserIdFromRequest(Request);
 
             if (currentUserId is null)
             {
-                return BadRequest(new APIResponse<StoryResponseDTO>()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -96,7 +96,7 @@ namespace StoryHubAPI.Controllers
 
             if (!outcome)
             {
-                return NotFound(new APIResponse<StoryResponseDTO>()
+                return NotFound(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.NotFound,
                     IsSuccess = false,
@@ -108,7 +108,7 @@ namespace StoryHubAPI.Controllers
 
             if (story is null)
             {
-                return NotFound(new APIResponse<StoryResponseDTO>()
+                return NotFound(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.NotFound,
                     IsSuccess = false,
@@ -129,7 +129,7 @@ namespace StoryHubAPI.Controllers
                 IfLikedByCurrentUser = await _storyRepo.IfLikedByCurrentUserAsync(story.Id, currentUserId)
             };
 
-            return Ok(new APIResponse<StoryResponseDTO>()
+            return Ok(new APIResponse()
             {
                 StatusCode = HttpStatusCode.OK,
                 IsSuccess = true,
@@ -142,13 +142,13 @@ namespace StoryHubAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult<APIResponse<List<StoryResponseDTO>>>> GetUserStories(string userId)
+        public async Task<ActionResult<APIResponse>> GetUserStories(string userId)
         {
             var currentUserId = _tokenService.RetrieveUserIdFromRequest(Request);
 
             if (currentUserId is null)
             {
-                return BadRequest(new APIResponse<List<StoryResponseDTO>>()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -175,7 +175,7 @@ namespace StoryHubAPI.Controllers
                 });
             }
 
-            return Ok(new APIResponse<List<StoryResponseDTO>>()
+            return Ok(new APIResponse()
             {
                 StatusCode = HttpStatusCode.OK,
                 IsSuccess = true,
@@ -188,13 +188,13 @@ namespace StoryHubAPI.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult<APIResponse<string>>> CreateStory([FromBody] StoryRequestDTO story)
+        public async Task<ActionResult<APIResponse>> CreateStory([FromBody] StoryRequestDTO story)
         {
             var currentUserId = _tokenService.RetrieveUserIdFromRequest(Request);
 
             if (currentUserId is null)
             {
-                return BadRequest(new APIResponse<string>()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -219,7 +219,7 @@ namespace StoryHubAPI.Controllers
 
             if (errors.Count > 0)
             {
-                return BadRequest(new APIResponse<string>
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -237,7 +237,7 @@ namespace StoryHubAPI.Controllers
 
             await _storyRepo.CreateAsync(created);
 
-            return Created(created.Id.ToString(), new APIResponse<string>
+            return Created(created.Id.ToString(), new APIResponse()
             {
                 StatusCode = HttpStatusCode.Created,
                 IsSuccess = true,
@@ -252,13 +252,13 @@ namespace StoryHubAPI.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<APIResponse<string>>> DeleteStory(string id)
+        public async Task<ActionResult<APIResponse>> DeleteStory(string id)
         {
             var currentUserId = _tokenService.RetrieveUserIdFromRequest(Request);
 
             if (currentUserId is null)
             {
-                return BadRequest(new APIResponse<string>()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -270,7 +270,7 @@ namespace StoryHubAPI.Controllers
 
             if (!outcome)
             {
-                return NotFound(new APIResponse<string>()
+                return NotFound(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.NotFound,
                     IsSuccess = false,
@@ -282,7 +282,7 @@ namespace StoryHubAPI.Controllers
 
             if (storyToDelete is null)
             {
-                return NotFound(new APIResponse<string>()
+                return NotFound(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.NotFound,
                     IsSuccess = false,
@@ -296,7 +296,7 @@ namespace StoryHubAPI.Controllers
 
             await _storyRepo.DeleteAsync(storyToDelete);
 
-            return Ok(new APIResponse<string>()
+            return Ok(new APIResponse()
             {
                 StatusCode = HttpStatusCode.OK,
                 IsSuccess = true,

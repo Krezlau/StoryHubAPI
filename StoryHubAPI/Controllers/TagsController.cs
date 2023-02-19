@@ -25,7 +25,7 @@ namespace StoryHubAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult<APIResponse<List<TagResponseDTO>>>> GetTags()
+        public async Task<ActionResult<APIResponse>> GetTags()
         {
             var tags = await _tagsRepo.GetAllAsync();
 
@@ -39,7 +39,7 @@ namespace StoryHubAPI.Controllers
                 });
             }
 
-            return Ok(new APIResponse<List<TagResponseDTO>>()
+            return Ok(new APIResponse()
             {
                 StatusCode = HttpStatusCode.OK,
                 IsSuccess = true,
@@ -53,7 +53,7 @@ namespace StoryHubAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<APIResponse<string>>> CreateTag([FromBody] TagRequestDTO tagDTO)
+        public async Task<ActionResult<APIResponse>> CreateTag([FromBody] TagRequestDTO tagDTO)
         {
             Tag tag = new Tag() { Name = tagDTO.Name };
 
@@ -62,7 +62,7 @@ namespace StoryHubAPI.Controllers
                 await _tagsRepo.CreateAsync(tag);
             } catch (Exception)
             {
-                return BadRequest(new APIResponse<string>()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -70,7 +70,7 @@ namespace StoryHubAPI.Controllers
                 });
             }
 
-            return Created(tag.Id.ToString(), new APIResponse<string>()
+            return Created(tag.Id.ToString(), new APIResponse()
             {
                 StatusCode = HttpStatusCode.Created,
                 IsSuccess = true,
@@ -84,13 +84,13 @@ namespace StoryHubAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<APIResponse<string>>> DeleteTag(string id)
+        public async Task<ActionResult<APIResponse>> DeleteTag(string id)
         {
             bool outcome = Guid.TryParseExact(id, "D", out Guid guid);
 
             if (!outcome)
             {
-                return BadRequest(new APIResponse<string>()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -102,7 +102,7 @@ namespace StoryHubAPI.Controllers
 
             if (tag is null)
             {
-                return BadRequest(new APIResponse<string>()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
@@ -113,7 +113,7 @@ namespace StoryHubAPI.Controllers
             try
             {
                 await _tagsRepo.DeleteAsync(tag);
-                return Ok(new APIResponse<string>()
+                return Ok(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.OK,
                     IsSuccess = true,
@@ -122,7 +122,7 @@ namespace StoryHubAPI.Controllers
             }
             catch (Exception)
             {
-                return BadRequest(new APIResponse<string>()
+                return BadRequest(new APIResponse()
                 {
                     StatusCode = HttpStatusCode.BadRequest,
                     IsSuccess = false,
