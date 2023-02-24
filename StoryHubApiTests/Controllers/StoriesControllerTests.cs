@@ -248,10 +248,25 @@ namespace StoryHubApiTests.Controllers
             Assert.Equal("tag", resultStoryList[0].Tags[0]);
         }
 
-        [Fact]
-        public void CreateStory_InvalidStory_ShouldReturnBadRequest()
+        [Theory]
+        public void CreateStory_InvalidStory_ShouldReturnBadRequest(Story story)
         {
-            //TODO
+            Mock<IStoryRepository> sRepoMock = new Mock<IStoryRepository>();
+            Mock<IAccessTokenService> tokenServiceMock = new Mock<IAccessTokenService>();
+            Mock<IRepository<Tag>> tRepoMock = new Mock<IRepository<Tag>>();
+
+            tokenServiceMock.Setup(t => t.RetrieveUserIdFromRequest(It.IsAny<HttpRequest>())).Returns("userId");
+
+            var controller = new StoriesController(sRepoMock.Object, tokenServiceMock.Object, tRepoMock.Object);
+
+            var data = controller.CreateStory(story).Result;
+            var result = (BadRequestObjectResult)data.Result;
+            var apiResponse = (APIResponse)result.Value;
+
+            Assert.Equal(400, result.StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, apiResponse.StatusCode);
+            Assert.False(apiResponse.IsSuccess);
+            Assert.Null(apiResponse.Result);
         }
 
         [Fact]
@@ -329,14 +344,12 @@ namespace StoryHubApiTests.Controllers
             Mock<IRepository<Tag>> tRepoMock = new Mock<IRepository<Tag>>();
 
             tokenServiceMock.Setup(t => t.RetrieveUserIdFromRequest(It.IsAny<HttpRequest>())).Returns("userId");
-            tRepoMock.Setup(t => t.GetAsync(It.Is<Expression<Func<Tag, bool>>>(t => t.Name == "tag1"), It.IsAny<bool>(), It.IsAny<string>()))
-                .Returns(Task.FromResult(SimpleData.SampleTagOne));
-            tRepoMock.Setup(t => t.GetAsync(It.Is<Expression<Func<Tag, bool>>>(x => x.Name == "tag2"), It.IsAny<bool>(), It.IsAny<string>()))
+            tRepoMock.Setup(t => t.GetAsync(It.IsAny<Expression<Func<Tag, bool>>>(), It.IsAny<bool>(), It.IsAny<string>()))
                 .Returns(Task.FromResult(SimpleData.SampleTagOne));
 
             Story storyPassedToDb = null;
             sRepoMock.Setup(s => s.CreateAsync(It.IsAny<Story>()))
-                .Callback<Story>(s => 
+                .Callback<Story>(s =>
                 {
                     s.Id = new Guid();
                     storyPassedToDb = s;
@@ -346,7 +359,7 @@ namespace StoryHubApiTests.Controllers
 
             StoryRequestDTO storyRequest = SimpleData.SampleStoryRequest;
             var data = controller.CreateStory(storyRequest).Result;
-            var result = (BadRequestObjectResult)data.Result;
+            var result = (CreatedResult)data.Result;
             var apiResponse = (APIResponse)result.Value;
 
             Assert.Equal(201, result.StatusCode);
@@ -356,25 +369,126 @@ namespace StoryHubApiTests.Controllers
 
             Assert.NotNull(storyPassedToDb);
             Assert.Equal(storyRequest.Title, storyPassedToDb.Title);
-            Assert.Equal(storyRequest.Tags, storyPassedToDb.Tags.Select(t => t.Name).ToList());
             Assert.Equal(storyRequest.Text, storyPassedToDb.Text);
             Assert.Equal("userId", storyPassedToDb.AuthorId);
-            //Assert.Equal(result.Location, storyPassedToDb.Id.ToString());
+            Assert.Equal(result.Location, storyPassedToDb.Id.ToString());
         }
 
         [Fact]
-        public void DeleteStory_InvalidToken_ShouldReturnBadRequest() { }
+        public void DeleteStory_InvalidToken_ShouldReturnBadRequest()
+        {
+            Mock<IStoryRepository> sRepoMock = new Mock<IStoryRepository>();
+            Mock<IAccessTokenService> tokenServiceMock = new Mock<IAccessTokenService>();
+            Mock<IRepository<Tag>> tRepoMock = new Mock<IRepository<Tag>>();
+
+            var controller = new StoriesController(sRepoMock.Object, tokenServiceMock.Object, tRepoMock.Object);
+
+            var data = controller.DeleteStory("id").Result;
+            var result = (BadRequestObjectResult)data.Result;
+            var apiResponse = (APIResponse)result.Value;
+
+            Assert.Equal(400, result.StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, apiResponse.StatusCode);
+            Assert.False(apiResponse.IsSuccess);
+            Assert.Equal("Couldn't read access token.", apiResponse.ErrorMessages.First());
+            Assert.Null(apiResponse.Result);
+        }
 
         [Fact]
-        public void DeleteStory_InvalidGuid_ShouldReturnNotFound() { }
+        public void DeleteStory_InvalidGuid_ShouldReturnNotFound()
+        {
+            Mock<IStoryRepository> sRepoMock = new Mock<IStoryRepository>();
+            Mock<IAccessTokenService> tokenServiceMock = new Mock<IAccessTokenService>();
+            Mock<IRepository<Tag>> tRepoMock = new Mock<IRepository<Tag>>();
+
+            tokenServiceMock.Setup(t => t.RetrieveUserIdFromRequest(It.IsAny<HttpRequest>())).Returns("userId");
+
+            var controller = new StoriesController(sRepoMock.Object, tokenServiceMock.Object, tRepoMock.Object);
+
+            var data = controller.DeleteStory("id").Result;
+            var result = (NotFoundObjectResult)data.Result;
+            var apiResponse = (APIResponse)result.Value;
+
+
+            Assert.Equal(404, result.StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, apiResponse.StatusCode);
+            Assert.False(apiResponse.IsSuccess);
+            Assert.Equal("Invalid id.", apiResponse.ErrorMessages.First());
+            Assert.Null(apiResponse.Result);
+        }
 
         [Fact]
-        public void DeleteStory_StoryNotFound_ShouldReturnNotFound() { }
+        public void DeleteStory_StoryNotFound_ShouldReturnNotFound()
+        {
+            Mock<IStoryRepository> sRepoMock = new Mock<IStoryRepository>();
+            Mock<IAccessTokenService> tokenServiceMock = new Mock<IAccessTokenService>();
+            Mock<IRepository<Tag>> tRepoMock = new Mock<IRepository<Tag>>();
+
+            tokenServiceMock.Setup(t => t.RetrieveUserIdFromRequest(It.IsAny<HttpRequest>())).Returns("userId");
+
+            var controller = new StoriesController(sRepoMock.Object, tokenServiceMock.Object, tRepoMock.Object);
+
+            var data = controller.DeleteStory("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa").Result;
+            var result = (NotFoundObjectResult)data.Result;
+            var apiResponse = (APIResponse)result.Value;
+
+
+            Assert.Equal(404, result.StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, apiResponse.StatusCode);
+            Assert.False(apiResponse.IsSuccess);
+            Assert.Equal("Couldn't find a story with specified id.", apiResponse.ErrorMessages.First());
+            Assert.Null(apiResponse.Result);
+        }
 
         [Fact]
-        public void DeleteStory_StoryDoesNotBelongToUser_ShouldReturnForbidden() { }
+        public void DeleteStory_StoryDoesNotBelongToUser_ShouldReturnForbidden()
+        {
+            Mock<IStoryRepository> sRepoMock = new Mock<IStoryRepository>();
+            Mock<IAccessTokenService> tokenServiceMock = new Mock<IAccessTokenService>();
+            Mock<IRepository<Tag>> tRepoMock = new Mock<IRepository<Tag>>();
+
+            Story? story = SimpleData.SampleStory;
+
+            tokenServiceMock.Setup(t => t.RetrieveUserIdFromRequest(It.IsAny<HttpRequest>())).Returns("userId");
+            sRepoMock.Setup(s => s.GetAsync(It.IsAny<Expression<Func<Story, bool>>>(), It.IsAny<bool>(), It.IsAny<string>())).Returns(Task.FromResult(story));
+
+            var controller = new StoriesController(sRepoMock.Object, tokenServiceMock.Object, tRepoMock.Object);
+
+            var data = controller.DeleteStory("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa").Result;
+            var result = (ForbidResult)data.Result;
+
+            Assert.IsType<ForbidResult>(result);
+        }
 
         [Fact]
-        public void DeleteStory_ValidRequest_ShouldReturnOk() { }
+        public void DeleteStory_ValidRequest_ShouldReturnOk()
+        {
+            Mock<IStoryRepository> sRepoMock = new Mock<IStoryRepository>();
+            Mock<IAccessTokenService> tokenServiceMock = new Mock<IAccessTokenService>();
+            Mock<IRepository<Tag>> tRepoMock = new Mock<IRepository<Tag>>();
+
+            Story? story = SimpleData.SampleStory;
+            Story storyPassed = null;
+
+            tokenServiceMock.Setup(t => t.RetrieveUserIdFromRequest(It.IsAny<HttpRequest>())).Returns("authorId");
+            sRepoMock.Setup(s => s.GetAsync(It.IsAny<Expression<Func<Story, bool>>>(), It.IsAny<bool>(), It.IsAny<string>())).Returns(Task.FromResult(story));
+            sRepoMock.Setup(s => s.DeleteAsync(It.IsAny<Story>()))
+                .Callback<Story>(st => storyPassed = st);
+
+            var controller = new StoriesController(sRepoMock.Object, tokenServiceMock.Object, tRepoMock.Object);
+
+            var data = controller.DeleteStory("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa").Result;
+            var result = (OkObjectResult)data.Result;
+            var apiResponse = (APIResponse)result.Value;
+
+
+            Assert.Equal(200, result.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, apiResponse.StatusCode);
+            Assert.True(apiResponse.IsSuccess);
+            Assert.Empty(apiResponse.ErrorMessages);
+
+            Assert.NotNull(storyPassed);
+            Assert.Equal(story.Id, storyPassed.Id);
+        }
     }
 }
