@@ -190,6 +190,24 @@ namespace StoryHubAPI.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<APIResponse>> CreateStory([FromBody] StoryRequestDTO story)
         {
+            if (story.Tags.Any(t => t is null || t.Length < 3)) 
+            {
+                ModelState.AddModelError("Tags", "Tags can't be shorter than 3 letters.");
+            }
+
+            if (!ModelState.IsValid) 
+            {
+                return BadRequest(new APIResponse()
+                {
+                    StatusCode = HttpStatusCode.BadRequest,
+                    IsSuccess = false,
+                    ErrorMessages = ModelState.Select(x => x.Value.Errors)
+                                                .Where(y => y is not null && y.Count > 0)
+                                                .Select(z => z.ToString())
+                                                .ToList()
+            });
+            }
+
             var currentUserId = _tokenService.RetrieveUserIdFromRequest(Request);
 
             if (currentUserId is null)

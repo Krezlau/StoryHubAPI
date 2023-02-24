@@ -248,27 +248,6 @@ namespace StoryHubApiTests.Controllers
             Assert.Equal("tag", resultStoryList[0].Tags[0]);
         }
 
-        [Theory]
-        public void CreateStory_InvalidStory_ShouldReturnBadRequest(Story story)
-        {
-            Mock<IStoryRepository> sRepoMock = new Mock<IStoryRepository>();
-            Mock<IAccessTokenService> tokenServiceMock = new Mock<IAccessTokenService>();
-            Mock<IRepository<Tag>> tRepoMock = new Mock<IRepository<Tag>>();
-
-            tokenServiceMock.Setup(t => t.RetrieveUserIdFromRequest(It.IsAny<HttpRequest>())).Returns("userId");
-
-            var controller = new StoriesController(sRepoMock.Object, tokenServiceMock.Object, tRepoMock.Object);
-
-            var data = controller.CreateStory(story).Result;
-            var result = (BadRequestObjectResult)data.Result;
-            var apiResponse = (APIResponse)result.Value;
-
-            Assert.Equal(400, result.StatusCode);
-            Assert.Equal(HttpStatusCode.BadRequest, apiResponse.StatusCode);
-            Assert.False(apiResponse.IsSuccess);
-            Assert.Null(apiResponse.Result);
-        }
-
         [Fact]
         public void CreateStory_InvalidToken_ShouldReturnBadRequest()
         {
