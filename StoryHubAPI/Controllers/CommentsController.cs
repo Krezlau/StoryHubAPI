@@ -65,7 +65,8 @@ namespace StoryHubAPI.Controllers
                     Id = comment.Id,
                     CreatedAt = comment.CreatedAt,
                     Text = comment.Text,
-                    Username = comment.User is not null ? comment.User.UserName : "[deleted user]"
+                    Username = comment.User is not null ? comment.User.UserName : "[deleted user]",
+                    UserId = comment.UserId
                 });
             }
 

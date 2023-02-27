@@ -82,6 +82,7 @@ namespace StoryHubAPI.Repository
                 UserName = registerRequestDTO.Username,
                 Email = registerRequestDTO.Email,
                 NormalizedEmail = registerRequestDTO.Email.ToUpper(),
+                CreatedAt = DateTime.Now
             };
 
             var result = await _userManager.CreateAsync(user, registerRequestDTO.Password);
