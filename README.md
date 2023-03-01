@@ -1,5 +1,5 @@
 # StoryHubAPI
-*<a href="storyhubapi.azurewebsites.net/index.html">storyhubapi.azurewebsites.net</a>*
+*<a href="https://storyhubapi.azurewebsites.net/index.html">storyhubapi.azurewebsites.net</a>*
 
 --- 
 ## Welcome to the StoryHub Backend Project.
@@ -22,4 +22,4 @@ The API is currently published in azure.
 ---
 ## Endpoints:
 
-Full endpoint documentation available at *<a href="storyhubapi.azurewebsites.net/index.html">storyhubapi.azurewebsites.net</a>* \
+Full endpoint documentation available at *<a href="https://storyhubapi.azurewebsites.net/index.html">storyhubapi.azurewebsites.net</a>*
