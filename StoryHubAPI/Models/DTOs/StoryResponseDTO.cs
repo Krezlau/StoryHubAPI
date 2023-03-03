@@ -13,6 +13,8 @@ namespace StoryHubAPI.Models.DTOs
 
         public string AuthorId { get; set; }
 
+        public string AuthorName { get; set; }
+
         public DateTime CreatedAt { get; set; }
 
         public int LikesCount { get; set; }

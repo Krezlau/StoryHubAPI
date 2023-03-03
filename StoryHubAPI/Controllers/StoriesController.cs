@@ -45,7 +45,7 @@ namespace StoryHubAPI.Controllers
                 });
             }
 
-            List<Story> stories = await _storyRepo.GetAllAsync(includeProperties: "Tags");
+            List<Story> stories = await _storyRepo.GetAllAsync(includeProperties: "Tags,Author");
 
             List<StoryResponseDTO> result = new List<StoryResponseDTO>(stories.Count);
             foreach (var story in stories)
@@ -54,6 +54,7 @@ namespace StoryHubAPI.Controllers
                 {
                     Id = story.Id,
                     AuthorId = story.AuthorId,
+                    AuthorName = story.Author.UserName,
                     CreatedAt = story.CreatedAt,
                     Text = story.Text,
                     Title = story.Title,
@@ -104,7 +105,7 @@ namespace StoryHubAPI.Controllers
                 });
             }
 
-            Story? story = await _storyRepo.GetAsync(s => s.Id == storyId, includeProperties: "Tags");
+            Story? story = await _storyRepo.GetAsync(s => s.Id == storyId, includeProperties: "Tags,Author");
 
             if (story is null)
             {
@@ -120,6 +121,7 @@ namespace StoryHubAPI.Controllers
             {
                 Id = story.Id,
                 AuthorId = story.AuthorId,
+                AuthorName = story.Author.UserName,
                 CreatedAt = story.CreatedAt,
                 Text = story.Text,
                 Title = story.Title,
@@ -156,7 +158,7 @@ namespace StoryHubAPI.Controllers
                 });
             }
 
-            List<Story> stories = await _storyRepo.GetAllAsync(filter: s => s.AuthorId == userId ,includeProperties: "Tags");
+            List<Story> stories = await _storyRepo.GetAllAsync(filter: s => s.AuthorId == userId ,includeProperties: "Tags,Author");
 
             List<StoryResponseDTO> result = new List<StoryResponseDTO>(stories.Count);
             foreach (var story in stories)
@@ -165,6 +167,7 @@ namespace StoryHubAPI.Controllers
                 {
                     Id = story.Id,
                     AuthorId = story.AuthorId,
+                    AuthorName = story.Author.UserName,
                     CreatedAt = story.CreatedAt,
                     Text = story.Text,
                     Title = story.Title,
