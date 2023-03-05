@@ -7,15 +7,15 @@ namespace StoryHubAPI.Models.DTOs
         [Required]
         [MinLength(1)]
         [MaxLength(255)]
-        public string Title { get; set; }
+        public string Title { get; set; } = string.Empty;
 
         [Required]
         [MinLength(1)]
-        public string Text { get; set; }
+        public string Text { get; set; } = string.Empty;
 
         [Required]
         [MinLength(1)]
         [MaxLength(5)]
-        public List<string> Tags { get; set; }
+        public List<string> Tags { get; set; } = new List<string>();
     }
 }
