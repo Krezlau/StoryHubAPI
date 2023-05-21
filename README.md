@@ -1,3 +1,9 @@
+# If you are here you should check out my latest project - <a href="https://github.com/Krezlau/Quizu-Frontend" >Quizu</a>!
+<br />
+<br />
+<br />
+
+
 # StoryHubAPI
 *<a href="https://storyhubapi.azurewebsites.net/index.html">storyhubapi.azurewebsites.net</a>*
 
